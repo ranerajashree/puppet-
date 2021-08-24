@@ -1,0 +1,76 @@
+#puppet install#
+
+ON MASTER:
+#!/bin/bash
+
+sudo apt-get update 
+sudo apt-get install wget 
+wget https://apt.puppetlabs.com/puppet-release-bionic.deb
+sudo dpkg -i puppet-release-bionic.deb                    
+sudo apt-get update 
+sudo apt-get install puppet-master -y
+
+
+ON SLAVE:
+#!/bin/bash
+
+sudo apt-get update
+sudo apt-get install wget 
+wget https://apt.puppetlabs.com/puppet-release-bionic.deb 
+sudo dpkg -i puppet-release-bionic.deb 
+sudo apt-get update
+sudo apt-get install puppet -y
+
+---------------------------
+#both master and slave#
+
+sudo nano /etc/hosts
+ip- puppet
+ip-slaves
+------
+#On Master#
+
+sudo nano /etc/default/puppet-master
+
+#Copy this inside the editor#
+JAVA_ARGS="-Xms1g Xmx1g" // add this line
+
+sudo systemctl restart puppet-master
+sudo ufw allow 8140/tcp
+sudo nano /etc/hosts
+# ip address of master both on master and slaves
+sudo systemctl restart puppet-master
+
+
+****ON SLAVE****
+sudo systemctl start puppet &&
+sudo systemctl enable puppet
+puppet agent --test
+
+
+*****ON MASTER******
+
+sudo puppet cert list 
+sudo puppet cert sign --all
+----------------
+sudo mkdir -p /etc/puppet/code/environments/production/manifests
+node default{
+exec{'Conditions':
+command => '/bin/echo "Apache is installed" > /home/ubuntu/config-management/status.txt ',
+onlyif => '/bin/which apache2',
+}
+exec{'conditions':
+command => '/bin/echo "Apache is not installed " > /home/ubuntu/config-management/status.txt ',
+unless => '/bin/which apache2',
+}
+}
+
+#ON SLAVE#
+ mkdir config-management
+cd config-management/
+ls
+sudo systemctl start puppet && sudo systemctl enable puppet
+sudo puppet agent --test
+ls
+cat status.txt
+// start apache and check for cat status.txt again.
